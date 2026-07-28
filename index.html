@@ -5,27 +5,307 @@
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
     <title>EmergenHex</title>
     <style>
+      :root {
+        color-scheme: dark;
+        --bg: #070711;
+        --panel: #101022;
+        --cyan: #27e7ee;
+        --pink: #f52988;
+        --amber: #ffad24;
+        --muted: #8888aa;
+      }
+
+      * { box-sizing: border-box; }
+
       html, body {
         width: 100%;
         height: 100%;
         margin: 0;
         overflow: hidden;
-        background: #0b0b14;
+        background: var(--bg);
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+      }
+
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -30%;
+        pointer-events: none;
+      }
+
+      body::before {
+        opacity: .34;
+        background:
+          linear-gradient(30deg, transparent 47%, #24243f 48%, #24243f 50%, transparent 51%) 0 0 / 96px 166px,
+          linear-gradient(150deg, transparent 47%, #24243f 48%, #24243f 50%, transparent 51%) 0 0 / 96px 166px,
+          linear-gradient(30deg, transparent 47%, #17172d 48%, #17172d 50%, transparent 51%) 48px 83px / 96px 166px,
+          linear-gradient(150deg, transparent 47%, #17172d 48%, #17172d 50%, transparent 51%) 48px 83px / 96px 166px;
+        animation: field-drift 24s linear infinite;
+      }
+
+      body::after {
+        background:
+          radial-gradient(circle at 30% 40%, rgba(39,231,238,.13), transparent 28%),
+          radial-gradient(circle at 72% 60%, rgba(245,41,136,.12), transparent 30%);
+        animation: aurora 6s ease-in-out infinite alternate;
       }
 
       #unity-canvas {
         display: block;
         width: 100vw;
         height: 100vh;
-        background: #0b0b14;
+        border: 0;
+        outline: none;
+        background: var(--bg);
+        opacity: 0;
+        transition: opacity .55s ease;
+      }
+
+      #unity-canvas.ready { opacity: 1; }
+
+      #loader {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: radial-gradient(circle at center, rgba(19,19,40,.5), rgba(7,7,17,.82));
+        transition: opacity .45s ease, transform .45s ease;
+      }
+
+      #loader.done {
+        opacity: 0;
+        transform: scale(1.035);
+        pointer-events: none;
+      }
+
+      #particles {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .particle {
+        position: absolute;
+        width: var(--size);
+        height: var(--size);
+        left: var(--left);
+        bottom: -20px;
+        border-radius: 35%;
+        background: var(--color);
+        box-shadow: 0 0 12px var(--color);
+        opacity: 0;
+        transform: rotate(30deg);
+        animation: rise var(--duration) linear var(--delay) infinite;
+      }
+
+      .loading-card {
+        position: relative;
+        width: min(580px, calc(100vw - 44px));
+        padding: 42px 48px 34px;
+        text-align: center;
+        background: linear-gradient(180deg, rgba(22,22,45,.94), rgba(10,10,24,.96));
+        border: 1px solid #323252;
+        clip-path: polygon(28px 0, calc(100% - 28px) 0, 100% 28px, 100% calc(100% - 28px), calc(100% - 28px) 100%, 28px 100%, 0 calc(100% - 28px), 0 28px);
+        box-shadow: 0 28px 90px #000b, inset 0 0 42px #161630;
+      }
+
+      .loading-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        clip-path: inherit;
+        background: linear-gradient(105deg, transparent 30%, rgba(39,231,238,.08), transparent 70%);
+        transform: translateX(-100%);
+        animation: card-sheen 3.2s ease-in-out infinite;
+      }
+
+      .eyebrow {
+        color: var(--amber);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .22em;
+        text-transform: uppercase;
+      }
+
+      .logo {
+        margin: 8px 0 2px;
+        color: white;
+        font-size: clamp(44px, 8vw, 72px);
+        font-weight: 1000;
+        letter-spacing: -.07em;
+        line-height: .98;
+        text-shadow: 0 5px 0 #20202f, 0 12px 28px #000;
+      }
+
+      .logo span {
+        color: #75f5ff;
+        text-shadow: 0 0 22px rgba(39,231,238,.35);
+      }
+
+      .tagline {
+        margin: 11px 0 30px;
+        color: #9a9ab4;
+        font-size: 13px;
+        font-style: italic;
+      }
+
+      .progress-shell {
+        position: relative;
+        height: 24px;
+        padding: 4px;
+        overflow: hidden;
+        background: #070713;
+        border: 1px solid #474767;
+        box-shadow: inset 0 2px 8px #000, 0 0 20px rgba(39,231,238,.08);
+      }
+
+      #progress-fill {
+        position: relative;
+        width: 0%;
+        height: 100%;
+        overflow: hidden;
+        background: linear-gradient(90deg, #0baebd, var(--cyan) 55%, #b6ffff);
+        box-shadow: 0 0 16px rgba(39,231,238,.8);
+        transition: width .22s cubic-bezier(.22,.8,.26,1);
+      }
+
+      #progress-fill::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(120deg, transparent 0 18px, rgba(255,255,255,.32) 18px 24px);
+        animation: bar-flow .55s linear infinite;
+      }
+
+      .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        margin-top: 11px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      #loading-state { color: #c8c8dc; }
+      #loading-percent { color: var(--cyan); min-width: 42px; text-align: right; }
+
+      .memory-line {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 25px;
+      }
+
+      .memory-line i {
+        width: 7px;
+        height: 7px;
+        border: 1px solid var(--pink);
+        transform: rotate(30deg);
+        animation: memory-pulse 1.2s ease-in-out infinite;
+      }
+
+      .memory-line i:nth-child(2) { animation-delay: .15s; }
+      .memory-line i:nth-child(3) { animation-delay: .30s; }
+      .memory-line i:nth-child(4) { animation-delay: .45s; }
+      .memory-line i:nth-child(5) { animation-delay: .60s; }
+
+      .version {
+        position: fixed;
+        right: 14px;
+        bottom: 12px;
+        color: #5e5e7d;
+        font-size: 10px;
+        letter-spacing: .06em;
+      }
+
+      @keyframes field-drift {
+        to { transform: translate3d(192px, 166px, 0); }
+      }
+
+      @keyframes aurora {
+        to { transform: scale(1.1) rotate(2deg); opacity: .7; }
+      }
+
+      @keyframes rise {
+        0% { opacity: 0; transform: translateY(0) rotate(30deg) scale(.5); }
+        12% { opacity: .75; }
+        75% { opacity: .25; }
+        100% { opacity: 0; transform: translateY(-110vh) rotate(390deg) scale(1.1); }
+      }
+
+      @keyframes card-sheen {
+        0%, 20% { transform: translateX(-110%); }
+        70%, 100% { transform: translateX(110%); }
+      }
+
+      @keyframes bar-flow {
+        to { transform: translateX(24px); }
+      }
+
+      @keyframes memory-pulse {
+        0%, 100% { background: transparent; box-shadow: none; transform: rotate(30deg) scale(.8); }
+        50% { background: var(--pink); box-shadow: 0 0 12px var(--pink); transform: rotate(30deg) scale(1.2); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: .001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: .001ms !important;
+        }
       }
     </style>
   </head>
   <body>
     <canvas id="unity-canvas" width="1280" height="800" tabindex="0"></canvas>
+    <div id="loader" role="status" aria-live="polite">
+      <div id="particles" aria-hidden="true"></div>
+      <div class="loading-card">
+        <div class="eyebrow">A buildcrafting idle puzzle</div>
+        <div class="logo">Emergen<span>Hex</span></div>
+        <div class="tagline">Reconstructing the memory lattice…</div>
+        <div class="progress-shell"><div id="progress-fill"></div></div>
+        <div class="progress-meta">
+          <span id="loading-state">Recovering fragments</span>
+          <span id="loading-percent">0%</span>
+        </div>
+        <div class="memory-line" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="version">EmergenHex v1.0.1</div>
+    </div>
     <script src="Build/EmergenHex.loader.js"></script>
     <script>
       const canvas = document.querySelector("#unity-canvas");
+      const loader = document.querySelector("#loader");
+      const fill = document.querySelector("#progress-fill");
+      const percent = document.querySelector("#loading-percent");
+      const state = document.querySelector("#loading-state");
+      const states = [
+        "Recovering fragments",
+        "Mapping the forgotten rings",
+        "Rebuilding combat memories",
+        "Stabilizing the lattice",
+        "Opening the archive"
+      ];
+      const particles = document.querySelector("#particles");
+
+      for (let i = 0; i < 30; i++) {
+        const mote = document.createElement("i");
+        mote.className = "particle";
+        mote.style.setProperty("--left", `${Math.random() * 100}%`);
+        mote.style.setProperty("--size", `${4 + Math.random() * 8}px`);
+        mote.style.setProperty("--duration", `${7 + Math.random() * 10}s`);
+        mote.style.setProperty("--delay", `${-Math.random() * 14}s`);
+        mote.style.setProperty("--color", i % 3 === 0 ? "#f52988" : i % 3 === 1 ? "#27e7ee" : "#8a53d8");
+        particles.appendChild(mote);
+      }
+
       createUnityInstance(canvas, {
         arguments: [],
         dataUrl: "Build/EmergenHex.data.unityweb",
@@ -34,8 +314,28 @@
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Limited Input",
         productName: "EmergenHex",
-        productVersion: "1.0.0"
-      }).then(() => canvas.focus()).catch(message => alert(message));
+        productVersion: "1.0.1"
+      }, progress => {
+        const value = Math.max(0, Math.min(1, progress));
+        const whole = Math.round(value * 100);
+        fill.style.width = `${whole}%`;
+        percent.textContent = `${whole}%`;
+        state.textContent = states[Math.min(states.length - 1, Math.floor(value * states.length))];
+      }).then(() => {
+        fill.style.width = "100%";
+        percent.textContent = "100%";
+        state.textContent = "Memory restored";
+        canvas.classList.add("ready");
+        setTimeout(() => {
+          loader.classList.add("done");
+          setTimeout(() => loader.remove(), 500);
+          canvas.focus();
+        }, 300);
+      }).catch(message => {
+        state.textContent = "The archive could not be opened";
+        state.style.color = "#ff5b65";
+        console.error(message);
+      });
     </script>
   </body>
 </html>
