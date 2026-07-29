@@ -277,9 +277,9 @@
         </div>
         <div class="memory-line" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="version">EmergenHex v1.0.2</div>
+      <div class="version">EmergenHex v1.0.12</div>
     </div>
-    <script src="Build/EmergenHex.loader.js"></script>
+    <script src="Build/EmergenHexDemo.loader.js"></script>
     <script>
       const canvas = document.querySelector("#unity-canvas");
       const loader = document.querySelector("#loader");
@@ -308,13 +308,13 @@
 
       createUnityInstance(canvas, {
         arguments: [],
-        dataUrl: "Build/EmergenHex.data.unityweb",
-        frameworkUrl: "Build/EmergenHex.framework.js.unityweb",
-        codeUrl: "Build/EmergenHex.wasm.unityweb",
+        dataUrl: "Build/EmergenHexDemo.data.unityweb",
+        frameworkUrl: "Build/EmergenHexDemo.framework.js.unityweb",
+        codeUrl: "Build/EmergenHexDemo.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Limited Input",
         productName: "EmergenHex",
-        productVersion: "1.0.2"
+        productVersion: "1.0.12"
       }, progress => {
         const value = Math.max(0, Math.min(1, progress));
         const whole = Math.round(value * 100);
