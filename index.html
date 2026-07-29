@@ -26,15 +26,15 @@
         font-family: Inter, "Segoe UI", Arial, sans-serif;
       }
 
-      body::before,
-      body::after {
+      #loader::before,
+      #loader::after {
         content: "";
-        position: fixed;
+        position: absolute;
         inset: -30%;
         pointer-events: none;
       }
 
-      body::before {
+      #loader::before {
         opacity: .34;
         background:
           linear-gradient(30deg, transparent 47%, #24243f 48%, #24243f 50%, transparent 51%) 0 0 / 96px 166px,
@@ -44,7 +44,7 @@
         animation: field-drift 24s linear infinite;
       }
 
-      body::after {
+      #loader::after {
         background:
           radial-gradient(circle at 30% 40%, rgba(39,231,238,.13), transparent 28%),
           radial-gradient(circle at 72% 60%, rgba(245,41,136,.12), transparent 30%);
@@ -277,7 +277,7 @@
         </div>
         <div class="memory-line" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="version">EmergenHex v1.0.1</div>
+      <div class="version">EmergenHex v1.0.2</div>
     </div>
     <script src="Build/EmergenHex.loader.js"></script>
     <script>
@@ -314,7 +314,7 @@
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Limited Input",
         productName: "EmergenHex",
-        productVersion: "1.0.1"
+        productVersion: "1.0.2"
       }, progress => {
         const value = Math.max(0, Math.min(1, progress));
         const whole = Math.round(value * 100);
